@@ -143,7 +143,7 @@ describe("PassItOn", function () {
 
       await expect(
         contract.connect(alice).passNFT(bob.address, 0)
-      ).to.be.revertedWith("Timer expired — NFT is lost");
+      ).to.be.revertedWith("Timer expired - NFT is lost");
     });
 
     it("should allow claiming lost NFT after expiry", async function () {

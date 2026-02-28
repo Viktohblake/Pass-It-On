@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.24;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -98,7 +98,7 @@ contract PassItOn is ERC721, Ownable, ReentrancyGuard {
 
         NFTData storage data = nfts[tokenId];
         require(data.alive, "NFT is no longer alive");
-        require(block.timestamp <= data.deadline, "Timer expired — NFT is lost");
+        require(block.timestamp <= data.deadline, "Timer expired - NFT is lost");
 
         // Update stats before transfer
         uint64 newDeadline = uint64(block.timestamp + PASS_DEADLINE);
