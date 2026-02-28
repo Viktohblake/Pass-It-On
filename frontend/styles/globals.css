@@ -1,0 +1,501 @@
+/* ──────────────────────────────────────────────
+   Pass It On — Global Styles
+   Minimalist, mobile-first, fun design
+   ────────────────────────────────────────────── */
+
+:root {
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --surface-hover: #1a1a1a;
+  --border: #2a2a2a;
+  --text: #fafafa;
+  --text-muted: #888;
+  --accent: #0052ff; /* Base blue */
+  --accent-hover: #0040cc;
+  --success: #00c853;
+  --warning: #ffab00;
+  --danger: #ff1744;
+  --gradient: linear-gradient(135deg, #0052ff 0%, #00c853 100%);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+/* ── Layout ── */
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px;
+}
+
+/* ── Header ── */
+.header {
+  text-align: center;
+  padding: 32px 0 24px;
+}
+
+.header h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.header p {
+  color: var(--text-muted);
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 16px;
+}
+
+.card-title {
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s;
+  width: 100%;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover {
+  background: var(--surface-hover);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  border-radius: 8px;
+  width: auto;
+}
+
+/* ── Countdown Timer ── */
+.countdown {
+  text-align: center;
+  padding: 24px 0;
+}
+
+.countdown-time {
+  font-size: 3.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+}
+
+.countdown-time.safe {
+  color: var(--success);
+}
+
+.countdown-time.warning {
+  color: var(--warning);
+  animation: pulse 2s infinite;
+}
+
+.countdown-time.danger {
+  color: var(--danger);
+  animation: pulse 0.5s infinite;
+}
+
+.countdown-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ── Input ── */
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  font-size: 1rem;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--accent);
+}
+
+.input::placeholder {
+  color: #555;
+}
+
+/* ── Leaderboard ── */
+.leaderboard-list {
+  list-style: none;
+}
+
+.leaderboard-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.leaderboard-item:last-child {
+  border-bottom: none;
+}
+
+.leaderboard-rank {
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: var(--accent);
+  min-width: 32px;
+}
+
+.leaderboard-info {
+  flex: 1;
+  margin-left: 12px;
+}
+
+.leaderboard-info .label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.leaderboard-info .value {
+  font-weight: 600;
+}
+
+.leaderboard-stat {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--success);
+}
+
+/* ── Status badge ── */
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.badge-alive {
+  background: rgba(0, 200, 83, 0.15);
+  color: var(--success);
+}
+
+.badge-lost {
+  background: rgba(255, 23, 68, 0.15);
+  color: var(--danger);
+}
+
+/* ── Social Share ── */
+.share-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.share-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  transition: all 0.2s;
+  text-align: center;
+}
+
+.share-btn:hover {
+  background: var(--surface-hover);
+  transform: translateY(-1px);
+}
+
+/* ── Modal overlay ── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 100;
+  padding: 16px;
+}
+
+.modal-content {
+  background: var(--surface);
+  border-radius: 20px 20px 0 0;
+  padding: 28px 24px 40px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .modal-overlay {
+    align-items: center;
+  }
+  .modal-content {
+    border-radius: 20px;
+  }
+}
+
+.modal-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+/* ── Tabs ── */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 4px;
+  margin-bottom: 20px;
+  border: 1px solid var(--border);
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s;
+}
+
+.tab.active {
+  background: var(--accent);
+  color: white;
+}
+
+/* ── NFT Visual ── */
+.nft-visual {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 280px;
+  margin: 0 auto 20px;
+  border-radius: 20px;
+  background: var(--gradient);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.nft-visual::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(255, 255, 255, 0.1) 0%, transparent 60%);
+}
+
+.nft-emoji {
+  font-size: 4rem;
+  position: relative;
+  z-index: 1;
+}
+
+.nft-label {
+  color: white;
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-top: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Wallet display ── */
+.wallet-address {
+  font-family: monospace;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+/* ── Stats row ── */
+.stats-row {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.stat-item {
+  flex: 1;
+  text-align: center;
+  padding: 12px;
+  background: var(--bg);
+  border-radius: 12px;
+}
+
+.stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── Error ── */
+.error {
+  color: var(--danger);
+  font-size: 0.9rem;
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* ── Loading ── */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Notification toast ── */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  z-index: 200;
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}

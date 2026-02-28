@@ -1,0 +1,25 @@
+{
+  "name": "pass-it-on",
+  "version": "1.0.0",
+  "description": "Viral hot potato NFT game on Base L2",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:sepolia": "hardhat run scripts/deploy.ts --network base-sepolia",
+    "deploy:base": "hardhat run scripts/deploy.ts --network base",
+    "verify": "hardhat verify --network base",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "dotenv": "^16.4.7"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.17",
+    "typescript": "^5.7.0",
+    "ts-node": "^10.9.2",
+    "@types/node": "^22.10.0"
+  }
+}
