@@ -1,11 +1,12 @@
 /**
- * WalletConnect — Landing screen for connecting a wallet.
+ * WalletConnect — Immersive arena landing screen.
  *
- * Supports MetaMask, Coinbase Wallet, and any injected EIP-1193 provider.
- * Shows Base branding and instructions.
+ * Full-viewport dark arena experience with animated gradient title,
+ * dramatic step cards, and pulsing connect button.
  */
 
 import React from "react";
+import { motion } from "framer-motion";
 
 interface WalletConnectProps {
   onConnect: () => void;
@@ -13,94 +14,181 @@ interface WalletConnectProps {
   error: string | null;
 }
 
+const steps = [
+  {
+    icon: "01",
+    title: "Ignite",
+    desc: "Mint a chain. The 24-hour countdown begins.",
+  },
+  {
+    icon: "02",
+    title: "Pass",
+    desc: "Send it before time runs out. The timer resets.",
+  },
+  {
+    icon: "03",
+    title: "Compete",
+    desc: "Build the longest chain. Dominate the leaderboard.",
+  },
+];
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.15, delayChildren: 0.3 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" as const } },
+};
+
 export default function WalletConnect({
   onConnect,
   connecting,
   error,
 }: WalletConnectProps) {
   return (
-    <div style={{ textAlign: "center", padding: "60px 0 40px" }}>
-      {/* Hero */}
-      <div style={{ fontSize: "4rem", marginBottom: 16 }}>🔥</div>
-      <h1
+    <motion.div
+      className="flex flex-col items-center justify-center min-h-[85vh] px-4 text-center"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
+      {/* Animated orb preview */}
+      <motion.div
+        className="relative w-32 h-32 mb-8"
+        variants={itemVariants}
+      >
+        <div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle at 35% 35%, rgba(59,130,246,0.3) 0%, rgba(6,182,212,0.15) 50%, transparent 80%)",
+            border: "1px solid rgba(59,130,246,0.2)",
+          }}
+        />
+        <motion.div
+          className="absolute inset-0 rounded-full"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)",
+            filter: "blur(40px)",
+          }}
+          animate={{ scale: [1, 1.3, 1], opacity: [0.4, 0.7, 0.4] }}
+          transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-4xl">🔥</span>
+        </div>
+      </motion.div>
+
+      {/* Title */}
+      <motion.h1
+        className="text-5xl sm:text-6xl font-black tracking-tight mb-3"
+        variants={itemVariants}
         style={{
-          fontSize: "2.4rem",
-          fontWeight: 800,
-          background: "linear-gradient(135deg, #0052ff 0%, #00c853 100%)",
+          background: "linear-gradient(135deg, #3b82f6 0%, #06b6d4 50%, #10b981 100%)",
           WebkitBackgroundClip: "text",
           backgroundClip: "text",
           WebkitTextFillColor: "transparent",
-          marginBottom: 12,
         }}
       >
         Pass It On
-      </h1>
-      <p style={{ color: "var(--text-muted)", maxWidth: 360, margin: "0 auto 32px", lineHeight: 1.5 }}>
-        The viral hot potato NFT game on Base.
+      </motion.h1>
+
+      {/* Tagline */}
+      <motion.p
+        className="text-slate-400 text-lg sm:text-xl max-w-sm mb-10 leading-relaxed"
+        variants={itemVariants}
+      >
+        The hot potato NFT arena on Base.
         <br />
-        Mint it. Pass it. Don&apos;t let it die.
-      </p>
+        <span className="text-slate-500">
+          Mint it. Pass it. Don&apos;t let it die.
+        </span>
+      </motion.p>
 
-      {/* How it works */}
-      <div className="card" style={{ textAlign: "left", marginBottom: 24 }}>
-        <div className="card-title">How it works</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.3rem" }}>1.</span>
+      {/* Steps */}
+      <motion.div
+        className="w-full max-w-md mb-10 space-y-3"
+        variants={itemVariants}
+      >
+        {steps.map((step) => (
+          <motion.div
+            key={step.icon}
+            className="glass-light rounded-xl px-5 py-4 flex items-start gap-4 text-left"
+            whileHover={{
+              scale: 1.02,
+              borderColor: "rgba(255,255,255,0.12)",
+            }}
+            transition={{ duration: 0.2 }}
+          >
+            <span
+              className="text-sm font-bold tabular-nums mt-0.5 flex-shrink-0"
+              style={{
+                background: "linear-gradient(135deg, #3b82f6, #06b6d4)",
+                WebkitBackgroundClip: "text",
+                backgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+              }}
+            >
+              {step.icon}
+            </span>
             <div>
-              <strong>Mint</strong> a hot potato NFT
-              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                Create a new chain or join an existing one
+              <div className="text-sm font-bold text-slate-200">
+                {step.title}
               </div>
+              <div className="text-xs text-slate-500 mt-0.5">{step.desc}</div>
             </div>
-          </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.3rem" }}>2.</span>
-            <div>
-              <strong>Pass</strong> it to a friend within 24 hours
-              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                The timer resets with each pass
-              </div>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-            <span style={{ fontSize: "1.3rem" }}>3.</span>
-            <div>
-              <strong>Compete</strong> for the longest chain
-              <div style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-                Climb the leaderboard and share your streak
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        ))}
+      </motion.div>
 
-      {/* Connect button */}
-      <button
-        className="btn btn-primary"
+      {/* Connect Button */}
+      <motion.button
+        className="mint-btn-glow w-full max-w-sm py-4 px-8 rounded-2xl text-lg font-bold text-white border-0 disabled:opacity-50 disabled:cursor-not-allowed"
         onClick={onConnect}
         disabled={connecting}
-        style={{ maxWidth: 360, margin: "0 auto" }}
+        variants={itemVariants}
+        whileHover={{ scale: connecting ? 1 : 1.03 }}
+        whileTap={{ scale: connecting ? 1 : 0.97 }}
       >
         {connecting ? (
-          <>
-            <span className="spinner" /> Connecting...
-          </>
+          <span className="flex items-center justify-center gap-2">
+            <span className="arena-spinner" /> Connecting...
+          </span>
         ) : (
-          "Connect Wallet"
+          "Enter the Arena"
         )}
-      </button>
+      </motion.button>
 
-      <p style={{ color: "var(--text-muted)", fontSize: "0.8rem", marginTop: 12 }}>
+      <motion.p
+        className="text-slate-600 text-xs mt-4"
+        variants={itemVariants}
+      >
         MetaMask, Coinbase Wallet, or any EIP-1193 wallet
-      </p>
+      </motion.p>
 
-      {error && <p className="error" style={{ marginTop: 12 }}>{error}</p>}
+      {error && (
+        <motion.p
+          className="text-red-400 text-sm mt-3"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          {error}
+        </motion.p>
+      )}
 
       {/* Base branding */}
-      <div style={{ marginTop: 48, color: "var(--text-muted)", fontSize: "0.8rem" }}>
+      <motion.div
+        className="mt-12 text-slate-700 text-xs tracking-wider uppercase"
+        variants={itemVariants}
+      >
         Built on Base L2
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

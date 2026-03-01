@@ -1,11 +1,17 @@
 /**
- * Leaderboard — Displays the top chains, most passes, and most participants.
+ * Leaderboard — Glassmorphism slide-in panel.
  *
- * Shows both on-chain global records and recent pass activity.
- * Designed to drive competition and social sharing.
+ * Compact, semi-transparent panel showing:
+ *  - Longest Chain Ever
+ *  - Most Passes
+ *  - Most Participants
+ *  - Recent pass activity feed
+ *
+ * Slides in from the right with framer-motion.
  */
 
 import React, { useEffect, useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useContract, LeaderboardData } from "../lib/hooks";
 import { API_URL } from "../lib/contract";
 
@@ -19,13 +25,23 @@ interface RecentPass {
   timestamp: string;
 }
 
-// Truncate address for display
 function truncAddr(addr: string): string {
-  if (!addr) return "—";
+  if (!addr) return "\u2014";
   return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
 }
 
-export default function Leaderboard() {
+interface LeaderboardProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const recordsMeta = [
+  { key: "longestChain", label: "Longest Chain", icon: "🔗", field: "length" },
+  { key: "mostPasses", label: "Most Passes", icon: "🔄", field: "count" },
+  { key: "mostParticipants", label: "Most Players", icon: "👥", field: "count" },
+] as const;
+
+export default function Leaderboard({ isOpen, onClose }: LeaderboardProps) {
   const { getLeaderboard } = useContract(null);
   const [data, setData] = useState<LeaderboardData | null>(null);
   const [recent, setRecent] = useState<RecentPass[]>([]);
@@ -33,147 +49,186 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!isOpen) return;
+
     async function load() {
       setLoading(true);
       try {
-        // Fetch on-chain leaderboard
         const lb = await getLeaderboard();
         if (lb) setData(lb);
 
-        // Fetch off-chain recent passes from backend
         const res = await fetch(`${API_URL}/leaderboard`);
         if (res.ok) {
           const json = await res.json();
           setRecent(json.recentPasses || []);
-          // If we got on-chain data from API too, use it
           if (json.onChain && !lb) {
             setData(json.onChain);
           }
         }
       } catch {
-        // Silently fail — leaderboard is non-critical
+        // Leaderboard is non-critical
       } finally {
         setLoading(false);
       }
     }
     load();
-  }, [getLeaderboard]);
-
-  if (loading) {
-    return (
-      <div className="card" style={{ textAlign: "center", padding: 40 }}>
-        <div className="spinner" />
-        <p style={{ color: "var(--text-muted)", marginTop: 12 }}>Loading leaderboard...</p>
-      </div>
-    );
-  }
+  }, [isOpen, getLeaderboard]);
 
   return (
-    <div>
-      {/* Tab switcher */}
-      <div className="tabs">
-        <button
-          className={`tab ${tab === "records" ? "active" : ""}`}
-          onClick={() => setTab("records")}
-        >
-          Records
-        </button>
-        <button
-          className={`tab ${tab === "recent" ? "active" : ""}`}
-          onClick={() => setTab("recent")}
-        >
-          Recent Passes
-        </button>
-      </div>
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          {/* Backdrop (mobile) */}
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={onClose}
+          />
 
-      {/* Records Tab */}
-      {tab === "records" && (
-        <div className="card">
-          <ul className="leaderboard-list">
-            {/* Longest Chain */}
-            <li className="leaderboard-item">
-              <span className="leaderboard-rank">1</span>
-              <div className="leaderboard-info">
-                <div className="label">Longest Chain</div>
-                <div className="value">
-                  {data && data.longestChain.length > 0
-                    ? `NFT #${data.longestChain.tokenId}`
-                    : "No chains yet"}
-                </div>
+          {/* Panel */}
+          <motion.div
+            className="fixed top-0 right-0 h-full w-full max-w-sm z-50 lg:top-4 lg:right-4 lg:h-auto lg:max-h-[calc(100vh-32px)] lg:rounded-2xl overflow-hidden"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 30, stiffness: 300 }}
+          >
+            <div className="glass-surface h-full lg:h-auto lg:rounded-2xl overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/5">
+                <h2 className="text-base font-bold text-slate-200">
+                  {"🏆 Leaderboard"}
+                </h2>
+                <button
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:text-slate-300 hover:bg-white/5 transition-all border-0 bg-transparent text-lg"
+                  onClick={onClose}
+                >
+                  {"×"}
+                </button>
               </div>
-              <span className="leaderboard-stat">
-                {data?.longestChain.length || 0}
-              </span>
-            </li>
 
-            {/* Most Passes */}
-            <li className="leaderboard-item">
-              <span className="leaderboard-rank">2</span>
-              <div className="leaderboard-info">
-                <div className="label">Most Passes</div>
-                <div className="value">
-                  {data && data.mostPasses.count > 0
-                    ? `NFT #${data.mostPasses.tokenId}`
-                    : "No passes yet"}
-                </div>
+              {/* Tabs */}
+              <div className="flex gap-1 px-4 pt-3 pb-2">
+                <button
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border-0 transition-all ${
+                    tab === "records"
+                      ? "bg-white/10 text-slate-200"
+                      : "bg-transparent text-slate-500 hover:text-slate-400"
+                  }`}
+                  onClick={() => setTab("records")}
+                >
+                  Records
+                </button>
+                <button
+                  className={`flex-1 py-2 rounded-lg text-xs font-semibold border-0 transition-all ${
+                    tab === "recent"
+                      ? "bg-white/10 text-slate-200"
+                      : "bg-transparent text-slate-500 hover:text-slate-400"
+                  }`}
+                  onClick={() => setTab("recent")}
+                >
+                  Live Feed
+                </button>
               </div>
-              <span className="leaderboard-stat">
-                {data?.mostPasses.count || 0}
-              </span>
-            </li>
 
-            {/* Most Participants */}
-            <li className="leaderboard-item">
-              <span className="leaderboard-rank">3</span>
-              <div className="leaderboard-info">
-                <div className="label">Most Participants</div>
-                <div className="value">
-                  {data && data.mostParticipants.count > 0
-                    ? `NFT #${data.mostParticipants.tokenId}`
-                    : "None yet"}
-                </div>
-              </div>
-              <span className="leaderboard-stat">
-                {data?.mostParticipants.count || 0}
-              </span>
-            </li>
-          </ul>
-
-          {/* Call to action */}
-          <div style={{ textAlign: "center", marginTop: 16 }}>
-            <p style={{ color: "var(--text-muted)", fontSize: "0.85rem" }}>
-              Mint an NFT and start a chain to get on the leaderboard!
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Recent Passes Tab */}
-      {tab === "recent" && (
-        <div className="card">
-          {recent.length === 0 ? (
-            <p style={{ color: "var(--text-muted)", textAlign: "center", padding: 20 }}>
-              No passes recorded yet. Be the first!
-            </p>
-          ) : (
-            <ul className="leaderboard-list">
-              {recent.map((pass) => (
-                <li key={pass.id} className="leaderboard-item">
-                  <span className="leaderboard-rank">#{pass.token_id}</span>
-                  <div className="leaderboard-info">
-                    <div className="value">
-                      {truncAddr(pass.from_wallet)} → {truncAddr(pass.to_wallet)}
-                    </div>
-                    <div className="label">
-                      Chain: {pass.chain_length} | {new Date(pass.timestamp).toLocaleDateString()}
-                    </div>
+              {/* Content */}
+              <div className="leaderboard-scroll px-4 pb-4 flex-1">
+                {loading ? (
+                  <div className="flex flex-col items-center py-10">
+                    <div className="arena-spinner" />
+                    <p className="text-slate-600 text-xs mt-3">Loading...</p>
                   </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+                ) : tab === "records" ? (
+                  <div className="space-y-2 mt-2">
+                    {recordsMeta.map((rec, idx) => {
+                      const recordData = data?.[rec.key as keyof LeaderboardData] as
+                        | { tokenId: number; length?: number; count?: number }
+                        | undefined;
+                      const value = recordData
+                        ? (recordData as any)[rec.field] || 0
+                        : 0;
+                      const tid = recordData?.tokenId;
+
+                      return (
+                        <motion.div
+                          key={rec.key}
+                          className="glass-light rounded-xl px-4 py-3 flex items-center gap-3"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.1 }}
+                        >
+                          <span className="text-lg">{rec.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-xs text-slate-500">
+                              {rec.label}
+                            </div>
+                            <div className="text-sm font-semibold text-slate-300">
+                              {value > 0
+                                ? `NFT #${tid}`
+                                : "No data yet"}
+                            </div>
+                          </div>
+                          <div
+                            className="text-xl font-black tabular-nums"
+                            style={{ color: "#10b981" }}
+                          >
+                            {value}
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+
+                    <p className="text-center text-xs text-slate-600 mt-4 pb-2">
+                      Start a chain to claim your spot
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 mt-2">
+                    {recent.length === 0 ? (
+                      <p className="text-center text-xs text-slate-600 py-8">
+                        No passes yet. Be the first!
+                      </p>
+                    ) : (
+                      recent.map((pass, idx) => (
+                        <motion.div
+                          key={pass.id}
+                          className="glass-light rounded-xl px-4 py-3"
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: idx * 0.05 }}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-xs font-bold text-slate-400">
+                              #{pass.token_id}
+                            </span>
+                            <span className="text-[10px] text-slate-600">
+                              Chain: {pass.chain_length}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-xs text-slate-500">
+                            <span className="font-mono text-slate-400">
+                              {truncAddr(pass.from_wallet)}
+                            </span>
+                            <span style={{ color: "#10b981" }}>{"→"}</span>
+                            <span className="font-mono text-slate-400">
+                              {truncAddr(pass.to_wallet)}
+                            </span>
+                          </div>
+                          <div className="text-[10px] text-slate-700 mt-1">
+                            {new Date(pass.timestamp).toLocaleString()}
+                          </div>
+                        </motion.div>
+                      ))
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        </>
       )}
-    </div>
+    </AnimatePresence>
   );
 }

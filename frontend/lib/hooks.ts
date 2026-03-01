@@ -249,7 +249,10 @@ export function useContract(signer: ethers.Signer | null) {
 
 // ──────────────────────────────────────────────
 //  useCountdown — live countdown from a deadline
+//  Enhanced with critical state and urgency messages
 // ──────────────────────────────────────────────
+export type Urgency = "safe" | "warning" | "danger" | "critical";
+
 export function useCountdown(deadline: number | null) {
   const [timeLeft, setTimeLeft] = useState<number>(0);
 
@@ -274,8 +277,40 @@ export function useCountdown(deadline: number | null) {
     .toString()
     .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 
-  const urgency: "safe" | "warning" | "danger" =
-    timeLeft > 6 * 3600 ? "safe" : timeLeft > 1 * 3600 ? "warning" : "danger";
+  const urgency: Urgency =
+    timeLeft > 6 * 3600
+      ? "safe"
+      : timeLeft > 3600
+        ? "warning"
+        : timeLeft > 600
+          ? "danger"
+          : "critical";
 
-  return { timeLeft, hours, minutes, seconds, formatted, urgency };
+  const urgencyMessage =
+    urgency === "safe"
+      ? "The Chain is Stable"
+      : urgency === "warning"
+        ? "The Chain is Unstable"
+        : "The Chain is About to Break";
+
+  const urgencyColor =
+    urgency === "safe"
+      ? "#10b981"
+      : urgency === "warning"
+        ? "#f59e0b"
+        : "#ef4444";
+
+  const progress = Math.min(1, timeLeft / 86400);
+
+  return {
+    timeLeft,
+    hours,
+    minutes,
+    seconds,
+    formatted,
+    urgency,
+    urgencyMessage,
+    urgencyColor,
+    progress,
+  };
 }
