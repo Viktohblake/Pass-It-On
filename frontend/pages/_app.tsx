@@ -17,19 +17,6 @@ function PrivyWrapper({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setMounted(true);
-
-    // Suppress MetaMask's inpage.js unhandled errors.
-    // MetaMask injects a content script into every page that can throw
-    // "Failed to connect to MetaMask" even when our app never touches it.
-    // Next.js dev overlay catches these as unhandled rejections.
-    const handleRejection = (e: PromiseRejectionEvent) => {
-      const msg = e?.reason?.message || String(e?.reason || "");
-      if (msg.includes("MetaMask") || msg.includes("inpage")) {
-        e.preventDefault();
-      }
-    };
-    window.addEventListener("unhandledrejection", handleRejection);
-    return () => window.removeEventListener("unhandledrejection", handleRejection);
   }, []);
 
   if (!mounted) {
