@@ -269,7 +269,7 @@ app.post("/notifyPass", (req: Request, res: Response) => {
  * Returns unread notifications for a wallet.
  */
 app.get("/notifications/:wallet", (req: Request, res: Response) => {
-  const wallet = req.params.wallet?.toLowerCase();
+  const wallet = (req.params.wallet as string)?.toLowerCase();
 
   if (!wallet || !ethers.isAddress(wallet)) {
     res.status(400).json({ error: "Invalid wallet address" });
