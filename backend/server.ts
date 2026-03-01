@@ -290,48 +290,87 @@ app.get("/notifications/:wallet", (req: Request, res: Response) => {
 });
 
 // ──────────────────────────────────────────────
-//  On-chain event listener (indexes passes in real-time)
+//  On-chain event listener (polls blocks instead of using filters)
 // ──────────────────────────────────────────────
+const POLL_INTERVAL_MS = 15_000; // 15 seconds (≈ Base block time × a few blocks)
+
 function startEventListener() {
   if (!contract) {
     console.log("⚠️  No contract address configured — skipping event listener");
     return;
   }
 
-  console.log("📡 Listening for on-chain events...");
+  console.log("📡 Listening for on-chain events (polling)...");
 
-  contract.on("NFTPassed", (tokenId, from, to, passCount, chainLength, newDeadline) => {
-    console.log(
-      `🔄 NFT #${tokenId} passed from ${from} → ${to} (chain: ${chainLength})`
-    );
+  let lastBlock = -1;
 
-    // Auto-index into our database
-    insertPass.run(
-      Number(tokenId),
-      from.toLowerCase(),
-      to.toLowerCase(),
-      Number(passCount),
-      Number(chainLength),
-      Number(newDeadline)
-    );
-  });
+  async function poll() {
+    try {
+      const currentBlock = await provider.getBlockNumber();
 
-  contract.on("NFTMinted", (tokenId, to, deadline) => {
-    console.log(`🆕 NFT #${tokenId} minted to ${to}`);
-  });
+      if (lastBlock < 0) {
+        // On first poll, only look at the current block onward
+        lastBlock = currentBlock;
+        return;
+      }
 
-  contract.on("NFTLost", (tokenId, lastHolder, finalPassCount, finalChainLength) => {
-    console.log(
-      `💀 NFT #${tokenId} lost! Last holder: ${lastHolder}, passes: ${finalPassCount}, chain: ${finalChainLength}`
-    );
+      if (currentBlock <= lastBlock) return;
 
-    insertNotification.run(
-      lastHolder.toLowerCase(),
-      Number(tokenId),
-      "lost",
-      `NFT #${tokenId} expired! Final chain length: ${finalChainLength}, total passes: ${finalPassCount}`
-    );
-  });
+      const from = lastBlock + 1;
+      const to = currentBlock;
+      lastBlock = currentBlock;
+
+      // Query all three event types in parallel
+      const [passedEvents, mintedEvents, lostEvents] = await Promise.all([
+        contract.queryFilter("NFTPassed", from, to),
+        contract.queryFilter("NFTMinted", from, to),
+        contract.queryFilter("NFTLost", from, to),
+      ]);
+
+      for (const ev of mintedEvents) {
+        const { tokenId, to: recipient, deadline } = (ev as ethers.EventLog).args as any;
+        console.log(`🆕 NFT #${tokenId} minted to ${recipient}`);
+      }
+
+      for (const ev of passedEvents) {
+        const { tokenId, from: sender, to: recipient, passCount, chainLength, newDeadline } =
+          (ev as ethers.EventLog).args as any;
+        console.log(
+          `🔄 NFT #${tokenId} passed from ${sender} → ${recipient} (chain: ${chainLength})`
+        );
+
+        insertPass.run(
+          Number(tokenId),
+          sender.toLowerCase(),
+          recipient.toLowerCase(),
+          Number(passCount),
+          Number(chainLength),
+          Number(newDeadline)
+        );
+      }
+
+      for (const ev of lostEvents) {
+        const { tokenId, lastHolder, finalPassCount, finalChainLength } =
+          (ev as ethers.EventLog).args as any;
+        console.log(
+          `💀 NFT #${tokenId} lost! Last holder: ${lastHolder}, passes: ${finalPassCount}, chain: ${finalChainLength}`
+        );
+
+        insertNotification.run(
+          lastHolder.toLowerCase(),
+          Number(tokenId),
+          "lost",
+          `NFT #${tokenId} expired! Final chain length: ${finalChainLength}, total passes: ${finalPassCount}`
+        );
+      }
+    } catch (err) {
+      console.error("Event poll error:", err);
+    }
+  }
+
+  // Initial poll, then repeat on interval
+  poll();
+  setInterval(poll, POLL_INTERVAL_MS);
 }
 
 // ──────────────────────────────────────────────
