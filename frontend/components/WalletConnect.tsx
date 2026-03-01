@@ -169,7 +169,7 @@ export default function WalletConnect({
         className="text-slate-600 text-xs mt-4"
         variants={itemVariants}
       >
-        MetaMask, Coinbase Wallet, or any EIP-1193 wallet
+        Sign in with email or connect any wallet
       </motion.p>
 
       {error && (

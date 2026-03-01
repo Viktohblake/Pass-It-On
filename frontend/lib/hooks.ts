@@ -4,11 +4,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { ethers } from "ethers";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import {
   CONTRACT_ADDRESS,
   CONTRACT_ABI,
   BASE_CHAIN_ID,
-  BASE_NETWORK,
 } from "./contract";
 
 // ──────────────────────────────────────────────
@@ -31,99 +31,71 @@ export interface LeaderboardData {
 }
 
 // ──────────────────────────────────────────────
-//  useWallet — connects to MetaMask / Coinbase / injected
+//  useWallet — Privy-powered wallet hook
+//  Supports email sign-in (embedded wallet) + external wallets.
+//  No auto-popup on mount.
 // ──────────────────────────────────────────────
 export function useWallet() {
+  const { login, logout, authenticated, ready } = usePrivy();
+  const { wallets } = useWallets();
+
   const [account, setAccount] = useState<string | null>(null);
   const [chainId, setChainId] = useState<number | null>(null);
-  const [provider, setProvider] =
-    useState<ethers.BrowserProvider | null>(null);
   const [signer, setSigner] = useState<ethers.Signer | null>(null);
-  const [connecting, setConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already connected on mount
+  // Derive signer from the active Privy wallet
   useEffect(() => {
-    if (typeof window !== "undefined" && window.ethereum) {
-      const p = new ethers.BrowserProvider(window.ethereum);
-      setProvider(p);
-
-      // Listen for account / chain changes
-      window.ethereum.on("accountsChanged", (accounts: string[]) => {
-        setAccount(accounts[0] || null);
-      });
-      window.ethereum.on("chainChanged", () => {
-        window.location.reload();
-      });
-
-      // Check existing connection
-      p.listAccounts().then((accounts) => {
-        if (accounts.length > 0) {
-          setAccount(accounts[0].address);
-          p.getSigner().then(setSigner);
-        }
-      });
-
-      p.getNetwork().then((net) => setChainId(Number(net.chainId)));
-    }
-  }, []);
-
-  const connect = useCallback(async () => {
-    if (!window.ethereum) {
-      setError("No wallet detected. Install MetaMask or Coinbase Wallet.");
+    if (!authenticated || wallets.length === 0) {
+      setAccount(null);
+      setSigner(null);
+      setChainId(null);
       return;
     }
 
-    setConnecting(true);
-    setError(null);
+    const activeWallet = wallets[0];
+    setAccount(activeWallet.address);
 
-    try {
-      const p = new ethers.BrowserProvider(window.ethereum);
-      const accounts = await p.send("eth_requestAccounts", []);
-      const s = await p.getSigner();
-      const net = await p.getNetwork();
+    async function setupSigner() {
+      try {
+        const activeWallet = wallets[0];
+        // Switch to Base if needed
+        await activeWallet.switchChain(BASE_CHAIN_ID);
 
-      setProvider(p);
-      setSigner(s);
-      setAccount(accounts[0]);
-      setChainId(Number(net.chainId));
+        const ethereumProvider = await activeWallet.getEthereumProvider();
+        const provider = new ethers.BrowserProvider(ethereumProvider);
+        const s = await provider.getSigner();
+        const net = await provider.getNetwork();
 
-      // Switch to Base if not already on it
-      if (Number(net.chainId) !== BASE_CHAIN_ID) {
-        try {
-          await window.ethereum.request({
-            method: "wallet_switchEthereumChain",
-            params: [{ chainId: BASE_NETWORK.chainId }],
-          });
-        } catch (switchErr: any) {
-          // Chain not added — add it
-          if (switchErr.code === 4902) {
-            await window.ethereum.request({
-              method: "wallet_addEthereumChain",
-              params: [BASE_NETWORK],
-            });
-          }
-        }
+        setSigner(s);
+        setChainId(Number(net.chainId));
+      } catch (err: any) {
+        setError(err?.message || "Failed to get wallet signer");
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to connect wallet");
-    } finally {
-      setConnecting(false);
     }
-  }, []);
 
-  const disconnect = useCallback(() => {
+    setupSigner();
+  }, [authenticated, wallets]);
+
+  const connect = useCallback(() => {
+    setError(null);
+    login();
+  }, [login]);
+
+  const disconnect = useCallback(async () => {
     setAccount(null);
     setSigner(null);
-  }, []);
+    setChainId(null);
+    await logout();
+  }, [logout]);
 
+  const connecting = !ready;
   const isBase = chainId === BASE_CHAIN_ID;
 
   return {
     account,
     chainId,
     isBase,
-    provider,
     signer,
     connecting,
     error,
